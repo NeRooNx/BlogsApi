@@ -3,6 +3,7 @@ using BlogsModel.Models;
 using FluentValidation;
 using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,7 @@ namespace BlogsApi.Features.Endpoints.Users;
 
 [Handler]
 [MapGet("api/v1/users/{id:guid}")]
+[Authorize]
 public partial class GetUser
 {
     internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)

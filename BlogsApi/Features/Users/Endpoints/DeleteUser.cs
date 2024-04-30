@@ -2,6 +2,7 @@
 using BlogsModel.Models;
 using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -10,6 +11,7 @@ namespace BlogsApi.Features.Endpoints.Users;
 
 [Handler]
 [MapDelete("api/v1/users/{id:guid}")]
+[Authorize]
 public partial class DeleteUser
 {
     internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)

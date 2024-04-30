@@ -1,14 +1,17 @@
-﻿using BlogsApi.Shared;
+﻿using BlogsApi.Features.Authentication.Service;
+using BlogsApi.Shared;
 using BlogsModel.Models;
 using FluentValidation;
 using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BlogsApi.Features.Endpoints.Blogs;
 
 [Handler]
 [MapPost("api/v1/blogs")]
+[Authorize]
 public partial class CreateBlog
 {
     internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
@@ -20,7 +23,6 @@ public partial class CreateBlog
 
     public class Request
     {
-        public Guid Author { get; set; } //TODO: gestión de sesiones -> current user
         public required string Title { get; set; }
         public required string Description { get; set; }
 
@@ -32,7 +34,12 @@ public partial class CreateBlog
         public Guid Id {  get; set; }
     }
 
-    private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, IValidator<Request> validator, CancellationToken cancellationToken)
+    private static async ValueTask<Result<Response>> Handle(
+        Request request, 
+        BlogsDBContext dbContext, 
+        CurrentUser currentUser,
+        IValidator<Request> validator, 
+        CancellationToken cancellationToken)
     {
         var validationResult = validator.Validate(request);
 
@@ -46,7 +53,7 @@ public partial class CreateBlog
 
         Blog blog = new()
         {
-            Author = request.Author,
+            Author = currentUser.Id,
             CreationDate = DateTime.Now,
             Description = request.Description,
             Title = request.Title,

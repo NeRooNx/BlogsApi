@@ -1,8 +1,11 @@
-﻿using BlogsApi.Shared;
+﻿using BlogsApi.Features.Authentication.Service;
+using BlogsApi.Shared;
+using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
 using FluentValidation;
 using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +13,7 @@ namespace BlogsApi.Features.Endpoints.Users;
 
 [Handler]
 [MapGet("api/v1/users")]
+[Authorize(Policy = PolicyConstants.USER)]
 public partial class GetUsers
 {
     internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
@@ -38,9 +42,13 @@ public partial class GetUsers
         public string? Nickname { get; set; }
     }
 
-    private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, IValidator<Request> validator, CancellationToken cancellationToken)
+    private static async ValueTask<Result<Response>> Handle(
+        Request request, 
+        BlogsDBContext dbContext, 
+        IValidator<Request> validator, 
+        CurrentUser current,
+        CancellationToken cancellationToken)
     {
-
         var validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
