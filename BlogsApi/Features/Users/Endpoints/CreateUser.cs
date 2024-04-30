@@ -1,4 +1,5 @@
 ﻿using BlogsApi.Extensions;
+using BlogsApi.Infrastructure;
 using BlogsApi.Shared;
 using BlogsModel.Models;
 using FluentValidation;
@@ -72,7 +73,7 @@ public partial class CreateUser
         var user = dbContext.Users.Add(new User()
         {
             Email = request.Email,
-            Password = request.Password,
+            Password = BCryptHelper.EncryptPassword(request.Password!),
             LastName = request.LastName,
             Name = request.Name,
             Nickname = request.Nickname,
