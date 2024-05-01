@@ -26,9 +26,9 @@ builder.Services.AddDbContext<BlogsDBContext>(options =>
 System.Reflection.Assembly assembly = typeof(Program).Assembly;
 
 
-string? secretKey = builder.Configuration.GetValue<string>("Token:JWT_SECRET_KEY");
-string? audienceToken = builder.Configuration.GetValue<string>("Token:JWT_AUDIENCE_TOKEN");
-string? issuerToken = builder.Configuration.GetValue<string>("Token:JWT_ISSUER_TOKEN");
+string secretKey = builder.Configuration.GetValue<string>("Token:JWT_SECRET_KEY") ?? throw new MissingFieldException("Token:JWT_SECRET_KEY");
+string audienceToken = builder.Configuration.GetValue<string>("Token:JWT_AUDIENCE_TOKEN") ?? throw new MissingFieldException("Token:JWT_AUDIENCE_TOKEN");
+string issuerToken = builder.Configuration.GetValue<string>("Token:JWT_ISSUER_TOKEN") ?? throw new MissingFieldException("Token:JWT_ISSUER_TOKEN");
 
 SymmetricSecurityKey securityKey = new(Encoding.Default.GetBytes(secretKey));
 

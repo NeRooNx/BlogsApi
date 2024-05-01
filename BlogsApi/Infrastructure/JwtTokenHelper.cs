@@ -11,12 +11,12 @@ public class JwtTokenHelper(IConfiguration configuration)
 
     public string GenerateToken(User user)
     {
-        string? secretKey = configuration.GetValue<string>("Token:JWT_SECRET_KEY");
-        string? audienceToken = configuration.GetValue<string>("Token:JWT_AUDIENCE_TOKEN");
-        string? issuerToken = configuration.GetValue<string>("Token:JWT_ISSUER_TOKEN");
-        int expireTime = configuration.GetValue<int>("Token:JWT_EXPIRE_MINUTES");
+        string secretKey = configuration.GetValue<string>("Token:JWT_SECRET_KEY") ?? throw new MissingFieldException("Token:JWT_SECRET_KEY");
+        string audienceToken = configuration.GetValue<string>("Token:JWT_AUDIENCE_TOKEN") ?? throw new MissingFieldException("Token:JWT_AUDIENCE_TOKEN");
+        string issuerToken = configuration.GetValue<string>("Token:JWT_ISSUER_TOKEN") ?? throw new MissingFieldException("Token:JWT_ISSUER_TOKEN");
+        int expireTime = configuration.GetValue<int?>("Token:JWT_EXPIRE_MINUTES") ?? throw new MissingFieldException("Token:JWT_EXPIRE_MINUTES");
 
-        SymmetricSecurityKey securityKey = new(Encoding.UTF8.GetBytes(secretKey));
+        SymmetricSecurityKey securityKey = new(Encoding.Default.GetBytes(secretKey));
         SigningCredentials signingCredentials = new(securityKey, SecurityAlgorithms.HmacSha256);
 
         ClaimsIdentity claimsIdentity = new(new[] {
