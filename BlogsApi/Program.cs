@@ -1,15 +1,8 @@
 using BlogsApi;
 using BlogsApi.Extensions;
-using BlogsApi.Features.Authentication.Service;
-using BlogsApi.Infrastructure;
-using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
 using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using System.Text;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -25,34 +18,7 @@ builder.Services.AddDbContext<BlogsDBContext>(options =>
 
 System.Reflection.Assembly assembly = typeof(Program).Assembly;
 
-
-string secretKey = builder.Configuration.GetValue<string>("Token:JWT_SECRET_KEY") ?? throw new MissingFieldException("Token:JWT_SECRET_KEY");
-string audienceToken = builder.Configuration.GetValue<string>("Token:JWT_AUDIENCE_TOKEN") ?? throw new MissingFieldException("Token:JWT_AUDIENCE_TOKEN");
-string issuerToken = builder.Configuration.GetValue<string>("Token:JWT_ISSUER_TOKEN") ?? throw new MissingFieldException("Token:JWT_ISSUER_TOKEN");
-
-SymmetricSecurityKey securityKey = new(Encoding.Default.GetBytes(secretKey));
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = issuerToken,
-            ValidAudience = audienceToken,
-            IssuerSigningKey = securityKey,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+builder.Services.AddAuth(builder.Configuration);
 
 builder.Services.AddHandlers();
 
@@ -62,8 +28,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddPolicies();
 
-builder.Services.AddScoped<JwtTokenHelper>();
-builder.Services.AddScoped<CurrentUser>();
+builder.Services.AddScopes();
 
 WebApplication app = builder.Build();
 

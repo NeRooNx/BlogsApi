@@ -1,6 +1,5 @@
 ﻿using BlogsApi.Shared;
 using BlogsModel.Models;
-using FluentValidation;
 using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
 using Microsoft.AspNetCore.Authorization;
@@ -35,17 +34,29 @@ public partial class GetUser
 
         public string? Email { get; set; }
         public string? Nickname { get; set; }
+
+        public int BlogsQuantity => Blogs.Count;
+
+        public List<Blog> Blogs { get; set; } = [];
+    }
+
+    public record Blog
+    {
+        public Guid Id { get; set; }
+        public required string Title { get; set; }
+        public required DateTime CreationDate { get; set; }
     }
 
     private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, CancellationToken cancellationToken)
     {
-        User? user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
+        User? user = await dbContext.Users
+            .Include(x => x.Blogs)
+            .SingleOrDefaultAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
 
-        if(user is null)
+        if (user is null)
         {
             return Result.Failure<Response>(new("GetUser.Handle", "El User no existe."));
         }
-
 
         Response response = new()
         {
@@ -54,6 +65,9 @@ public partial class GetUser
             Email = user.Email,
             Nickname = user.Nickname,
             Id = user.Id,
+            Blogs = user.Blogs
+                        .Select(x => new Blog() { Id = x.Id, Title = x.Title ?? "", CreationDate = x.CreationDate!.Value })
+                        .ToList(),
         };
 
         return Result.Success(response);

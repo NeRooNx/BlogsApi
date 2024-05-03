@@ -3,6 +3,7 @@ using BlogsApi.Infrastructure;
 using BlogsApi.Shared;
 using BlogsModel.Models;
 using FluentValidation;
+using FluentValidation.Results;
 using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -56,7 +57,7 @@ public partial class Login
         JwtTokenHelper jwtTokenHelper,
         CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request);
+        ValidationResult validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
         {
@@ -65,12 +66,12 @@ public partial class Login
 
         User? user = dbContext.Users.SingleOrDefault(x => x.Email == request.User || x.Nickname == request.User);
 
-        if(user == null)
+        if (user == null)
         {
             return Result.Failure<Response>(new("Login.Handle", "El User no existe."));
         }
 
-        if(!BCryptHelper.ComparePasswords(request.Password, user.Password!))
+        if (!BCryptHelper.ComparePasswords(request.Password, user.Password!))
         {
             return Result.Failure<Response>(new("Login.Handle", "El User o la contraseña no coinciden."));
         }

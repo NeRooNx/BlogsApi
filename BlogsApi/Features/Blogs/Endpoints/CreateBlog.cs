@@ -1,5 +1,6 @@
 ﻿using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Shared;
+using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
 using FluentValidation;
 using Immediate.Apis.Shared;
@@ -11,7 +12,7 @@ namespace BlogsApi.Features.Endpoints.Blogs;
 
 [Handler]
 [MapPost("api/v1/blogs")]
-[Authorize]
+[Authorize(Policy = PolicyConstants.USER)]
 public partial class CreateBlog
 {
     internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
@@ -62,7 +63,7 @@ public partial class CreateBlog
 
         await dbContext.Blogs.AddAsync(blog);
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
 
         return new Response()

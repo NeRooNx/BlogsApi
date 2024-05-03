@@ -69,8 +69,7 @@ public partial class CreateUser
                 validationResult.ToString()));
         }
 
-
-        var user = dbContext.Users.Add(new User()
+        var user = new User()
         {
             Email = request.Email,
             Password = BCryptHelper.EncryptPassword(request.Password!),
@@ -78,13 +77,15 @@ public partial class CreateUser
             Name = request.Name,
             Nickname = request.Nickname,
             RegisterDate = DateTime.Now
-        });
+        };
+
+        dbContext.Users.Add(user);
 
         await dbContext.SaveChangesAsync();
 
         Response response = new()
         {
-            Id = user.Entity.Id
+            Id = user.Id
         };
 
         return Result.Success(response);
