@@ -1,4 +1,5 @@
-﻿using BlogsApi.Shared;
+﻿using BlogsApi.Extensions;
+using BlogsApi.Shared;
 using BlogsModel.Models;
 using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
@@ -49,9 +50,7 @@ public partial class GetUser
 
     private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, CancellationToken cancellationToken)
     {
-        User? user = await dbContext.Users
-            .Include(x => x.Blogs)
-            .SingleOrDefaultAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
+        User? user = await dbContext.GetUserWithBlogs(request.Id, cancellationToken);
 
         if (user is null)
         {

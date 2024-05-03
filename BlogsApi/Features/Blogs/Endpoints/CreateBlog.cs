@@ -51,7 +51,6 @@ public partial class CreateBlog
                 validationResult.ToString()));
         }
 
-
         Blog blog = new()
         {
             Author = currentUser.Id,
@@ -64,7 +63,6 @@ public partial class CreateBlog
         await dbContext.Blogs.AddAsync(blog);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-
 
         return new Response()
         {

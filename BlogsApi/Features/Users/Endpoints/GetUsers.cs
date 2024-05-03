@@ -40,6 +40,7 @@ public partial class GetUsers
 
         public string? Email { get; set; }
         public string? Nickname { get; set; }
+        public int BlogsQuantity {get; set; }
     }
 
     private static async ValueTask<Result<Response>> Handle(
@@ -59,7 +60,9 @@ public partial class GetUsers
         }
 
 
-        List<User> user = await dbContext.Users.ToListAsync();
+        List<User> user = await dbContext.Users
+                                .Include(x => x.Blogs)
+                                .ToListAsync();
 
         List<UserDto> dtoList = new();
 
@@ -71,7 +74,8 @@ public partial class GetUsers
                 LastName = x.LastName,
                 Email = x.Email,
                 Nickname = x.Nickname,
-                Id = x.Id
+                Id = x.Id,
+                BlogsQuantity = x.Blogs.Count,
             };
 
             dtoList.Add(dto);
