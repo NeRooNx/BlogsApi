@@ -32,6 +32,7 @@ public partial class GetBlog
         public string? Title { get; set; }
         public string? Description { get; set; }
         public DateTime? CreationDate { get; set; }
+        public required int PostQuantity { get; set; }
     }
 
     public record Author
@@ -47,6 +48,7 @@ public partial class GetBlog
 
         Blog? blog = await dbContext.Blogs
             .Include(x => x.AuthorNavigation)
+            .Include(x => x.Posts)
             .SingleOrDefaultAsync(x => x.Id == request.Id);
 
         if (blog is null)
@@ -59,13 +61,14 @@ public partial class GetBlog
             CreationDate = blog.CreationDate,
             Title = blog.Title,
             Description = blog.Description,
+            PostQuantity = blog.Posts.Count,
             Author = new()
             {
                 Id = blog.AuthorNavigation?.Id,
                 LastName = blog.AuthorNavigation?.LastName,
                 Name = blog.AuthorNavigation?.Name,
                 Nickname = blog.AuthorNavigation?.Nickname,
-            }
+            },
         };
 
         return Result.Success<Response>(response);

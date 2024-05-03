@@ -1,5 +1,4 @@
 ﻿using BlogsApi.Extensions;
-using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Shared;
 using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
@@ -8,7 +7,6 @@ using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogsApi.Features.Endpoints.Blogs;
 
@@ -39,16 +37,15 @@ public partial class GetUserBlogs
         public Guid Id { get; set; }
         public required string Title { get; set; }
         public required DateTime CreationDate { get; set; }
+        public required int PostQuantity { get; set; }
     }
 
     private static async ValueTask<Result<Response>> Handle(
-        Request request, 
-        BlogsDBContext dbContext, 
-        CurrentUser currentUser,
-        IValidator<Request> validator, 
+        Request request,
+        BlogsDBContext dbContext,
         CancellationToken cancellationToken)
     {
-        User? user = await dbContext.GetUserWithBlogs(request.Id, cancellationToken);
+        User? user = await dbContext.GetUserWithBlogsAndPosts(request.Id, cancellationToken);
 
         if (user is null)
         {
@@ -58,7 +55,13 @@ public partial class GetUserBlogs
         Response response = new()
         {
             Blogs = user.Blogs
-                        .Select(x => new Blog() { Id = x.Id, Title = x.Title ?? "", CreationDate = x.CreationDate!.Value })
+                        .Select(x => new Blog()
+                        {
+                            Id = x.Id,
+                            Title = x.Title ?? "",
+                            CreationDate = x.CreationDate!.Value,
+                            PostQuantity = x.Posts.Count
+                        })
                         .ToList(),
         };
 

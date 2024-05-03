@@ -15,4 +15,14 @@ public static class ContextExtensions
 
         return user;
     }
+
+    public static async Task<User?> GetUserWithBlogsAndPosts(this BlogsDBContext dbContext, Guid userId, CancellationToken cancellationToken)
+    {
+        User? user = await dbContext.Users
+            .Include(x => x.Blogs)
+                .ThenInclude(x => x.Posts)
+            .SingleOrDefaultAsync(x => x.Id == userId, cancellationToken: cancellationToken);
+
+        return user;
+    }
 }
