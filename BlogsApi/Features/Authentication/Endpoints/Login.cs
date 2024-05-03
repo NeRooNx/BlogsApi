@@ -21,13 +21,13 @@ public partial class Login
             : TypedResults.Ok(result.Value);
     }
 
-    public class Request
+    public record Request
     {
         public required string User { get; set; }
         public required string Password { get; set; }
     }
 
-    public class Response
+    public record Response
     {
         public required string Token { get; set; }
         //devolver roles para comodidad del recurso que consuma la api

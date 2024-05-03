@@ -22,7 +22,7 @@ public partial class CreateBlog
             : TypedResults.Ok(result.Value);
     }
 
-    public class Request
+    public record Request
     {
         public required string Title { get; set; }
         public required string Description { get; set; }
@@ -30,7 +30,7 @@ public partial class CreateBlog
         //public byte[]? Icon { get; set; } //TODO: crear filemanager y guardar el icono
     }
 
-    public class Response
+    public record Response
     {
         public Guid Id {  get; set; }
     }

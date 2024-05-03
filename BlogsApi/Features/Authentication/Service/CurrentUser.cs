@@ -3,7 +3,7 @@ using BlogsApi.Shared;
 
 namespace BlogsApi.Features.Authentication.Service;
 
-public class CurrentUser
+public record CurrentUser
 {
     public CurrentUser(IHttpContextAccessor httpContextAccessor)
     {

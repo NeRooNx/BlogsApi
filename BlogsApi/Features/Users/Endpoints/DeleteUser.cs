@@ -21,12 +21,12 @@ public partial class DeleteUser
             : TypedResults.Ok(result.Value);
     }
 
-    public class Request
+    public record Request
     {
         public Guid Id { get; set; }
     }
 
-    public class Response
+    public record Response
     {
     }
 

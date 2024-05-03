@@ -23,15 +23,15 @@ public partial class GetUsers
             : TypedResults.Ok(result.Value);
     }
 
-    public class Request
+    public record Request
     {
     }
 
-    public class Response
+    public record Response
     {
         public List<UserDto>? users { get; set; }
     }
-    public class UserDto
+    public record UserDto
     {
         public Guid Id { get; set; }
         public string? Name { get; set; }

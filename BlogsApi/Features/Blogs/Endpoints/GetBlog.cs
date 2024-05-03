@@ -21,12 +21,12 @@ public partial class GetBlog
             : TypedResults.Ok(result.Value);
     }
 
-    public class Request
+    public record Request
     {
         public Guid Id { get; set; }
     }
 
-    public class Response
+    public record Response
     {
         public Author? Author { get; set; }
         public string? Title { get; set; }
@@ -34,7 +34,7 @@ public partial class GetBlog
         public DateTime? CreationDate { get; set; }
     }
 
-    public class Author
+    public record Author
     {
         public Guid? Id { get; set; }
         public string? Name { get; set; }

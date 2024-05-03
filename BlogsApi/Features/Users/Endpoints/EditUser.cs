@@ -24,7 +24,7 @@ public partial class EditUser
             : TypedResults.Ok(result.Value);
     }
 
-    public class Request
+    public record Request
     {
         public string? Name { get; set; }
 
@@ -35,7 +35,7 @@ public partial class EditUser
 
     }
 
-    public class Response
+    public record Response
     {
         public Guid Id { get; set; }
     }

@@ -25,13 +25,13 @@ public partial class EditUserPassword
             : TypedResults.Ok(result.Value);
     }
 
-    public class Request
+    public record Request
     {
         public string? Password { get; set; }
     }
 
 
-    public class Response
+    public record Response
     {
     }
 
