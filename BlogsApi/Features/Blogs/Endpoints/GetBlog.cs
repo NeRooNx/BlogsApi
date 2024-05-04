@@ -49,6 +49,7 @@ public partial class GetBlog
         Blog? blog = await dbContext.Blogs
             .Include(x => x.AuthorNavigation)
             .Include(x => x.Posts)
+            .Where(x => x.DeleteDate == null)
             .SingleOrDefaultAsync(x => x.Id == request.Id);
 
         if (blog is null)

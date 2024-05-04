@@ -29,7 +29,8 @@ public partial class GetUserBlogs
 
     public record Response
     {
-        public List<Blog> Blogs { get; set; } = [];
+        public List<Blog> ActiveBlogs { get; set; } = [];
+        public List<UnactiveBlog> UnactiveBlogs { get; set; } = [];
     }
 
     public record Blog
@@ -38,6 +39,11 @@ public partial class GetUserBlogs
         public required string Title { get; set; }
         public required DateTime CreationDate { get; set; }
         public required int PostQuantity { get; set; }
+    }
+
+    public record UnactiveBlog : Blog { 
+    
+        public DateTime? DeleteDate { get; set; }
     }
 
     private static async ValueTask<Result<Response>> Handle(
@@ -54,13 +60,26 @@ public partial class GetUserBlogs
 
         Response response = new()
         {
-            Blogs = user.Blogs
+            ActiveBlogs = user.Blogs
+                        .Where(x => x.DeleteDate == null)
                         .Select(x => new Blog()
                         {
                             Id = x.Id,
                             Title = x.Title ?? "",
                             CreationDate = x.CreationDate!.Value,
                             PostQuantity = x.Posts.Count
+                        })
+                        .ToList(),
+
+            UnactiveBlogs = user.Blogs
+                        .Where(x => x.DeleteDate != null)
+                        .Select(x => new UnactiveBlog()
+                        {
+                            Id = x.Id,
+                            Title = x.Title ?? "",
+                            CreationDate = x.CreationDate!.Value,
+                            PostQuantity = x.Posts.Count,
+                            DeleteDate = x.DeleteDate
                         })
                         .ToList(),
         };

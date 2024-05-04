@@ -50,7 +50,9 @@ public partial class EditBlog
                 validationResult.ToString()));
         }
 
-        Blog? blog = dbContext.Blogs.SingleOrDefault(x => x.Id == request.Id);
+        Blog? blog = dbContext.Blogs
+                                .Where(x => x.DeleteDate == null)
+                                .SingleOrDefault(x => x.Id == request.Id);
 
         if (blog is null)
         {
