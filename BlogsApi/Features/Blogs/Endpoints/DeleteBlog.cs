@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 namespace BlogsApi.Features.Endpoints.Blogs;
 
 [Handler]
-[MapDelete("api/v1/blogs/{id:guid")]
+[MapDelete("api/v1/blogs/{id:guid}")]
 [Authorize(Policy = PolicyConstants.USER)]
 public partial class DeleteBlog
 {
