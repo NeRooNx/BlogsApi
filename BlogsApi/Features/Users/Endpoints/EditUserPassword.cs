@@ -51,7 +51,9 @@ public partial class EditUserPassword
                 validationResult.ToString()));
         }
 
-        User? user = await dBContext.Users.SingleOrDefaultAsync(x => x.Id == currentUser.Id, cancellationToken: cancellationToken);
+        User? user = await dBContext.Users
+                                    .Where(x => x.DeleteDate == null)
+                                    .SingleOrDefaultAsync(x => x.Id == currentUser.Id, cancellationToken: cancellationToken);
 
         if (user is null)
         {

@@ -64,7 +64,9 @@ public partial class Login
             return Result.Failure<Response>(new Error("Login.Validation", validationResult.ToString()));
         }
 
-        User? user = dbContext.Users.SingleOrDefault(x => x.Email == request.User || x.Nickname == request.User);
+        User? user = dbContext.Users
+                            .Where(x => x.DeleteDate == null)
+                            .SingleOrDefault(x => x.Email == request.User || x.Nickname == request.User);
 
         if (user == null)
         {

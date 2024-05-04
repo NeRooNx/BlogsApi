@@ -11,6 +11,7 @@ public static class ContextExtensions
     {
         User? user = await dbContext.Users
             .Include(x => x.Blogs)
+            .Where(x => x.DeleteDate == null)
             .SingleOrDefaultAsync(x => x.Id == userId, cancellationToken: cancellationToken);
 
         return user;

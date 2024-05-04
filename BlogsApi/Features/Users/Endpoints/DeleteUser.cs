@@ -40,7 +40,7 @@ public partial class DeleteUser
             return Result.Failure<Response>(new($"{nameof(DeleteUser)}.Handle", "El User no existe."));
         }
 
-        dbContext.Users.Remove(user);
+        user.DeleteDate = DateTime.UtcNow;
 
         await dbContext.SaveChangesAsync();
 

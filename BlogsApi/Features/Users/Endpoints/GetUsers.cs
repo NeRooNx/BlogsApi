@@ -62,6 +62,7 @@ public partial class GetUsers
 
         List<User> user = await dbContext.Users
                                 .Include(x => x.Blogs)
+                                .Where(x => x.DeleteDate == null)
                                 .ToListAsync();
 
         List<UserDto> dtoList = new();
