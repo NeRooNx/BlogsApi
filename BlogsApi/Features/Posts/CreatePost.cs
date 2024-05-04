@@ -64,20 +64,23 @@ public partial class CreatePost
 
         Blog blog = await dbContext.Blogs
                                     .Include(x => x.Posts)
-                                    .Where(x => x.Id == request.BlogId).FirstAsync();
+                                    .Where(x => x.Id == request.BlogId)
+                                    .FirstAsync();
 
         Post post = new()
         {
             Body = request.Post.Body,
             Title = request.Post.Title,
             Id = Guid.NewGuid(),
+            CreationDate = DateTime.UtcNow,
+            BlogId = blog.Id,
         };
 
         dbContext.Posts.Add(post);
 
         blog.Posts.Add(post);
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         Response response = new()
         {
@@ -96,7 +99,10 @@ public partial class CreatePost
             RuleFor(x => x.BlogId)
                 .Must(x =>
                 {
-                    return dBContext.Blogs.Where(y => y.Id == x && y.Author == currentUser.Id).Any();
+                    return dBContext.Blogs
+                                    .Where(x => x.Author == currentUser.Id)
+                                    .Where(y => y.Id == x)
+                                    .Any();
                 })
                 .WithMessage("El Blog no existe");
 
