@@ -50,7 +50,7 @@ public partial class GetUser
 
     private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, CancellationToken cancellationToken)
     {
-        User? user = await dbContext.GetUserWithBlogs(request.Id, cancellationToken);
+        User? user = await dbContext.GetUserWithBlogsAsync(request.Id, cancellationToken);
 
         if (user is null)
         {

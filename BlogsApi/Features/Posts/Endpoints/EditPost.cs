@@ -13,9 +13,9 @@ using Microsoft.EntityFrameworkCore;
 namespace BlogsApi.Features;
 
 [Handler]
-[MapPost("api/v1/blogs/{BlogId:guid}/posts")]
+[MapPut("api/v1/posts/{id:guid}")]
 [Authorize(Policy = PolicyConstants.USER)]
-public partial class CreatePost
+public partial class EditPost
 {
     internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
     {
@@ -28,7 +28,7 @@ public partial class CreatePost
     public record Request
     {
         [FromRoute]
-        public required Guid BlogId { get; set; }
+        public required Guid Id { get; set; }
 
         [FromBody]
         public required PostDto Post { get; set; }
@@ -49,7 +49,6 @@ public partial class CreatePost
     private static async ValueTask<Result<Response>> Handle(
         Request request,
         BlogsDBContext dbContext,
-        CurrentUser currentUser,
         IValidator<Request> validator,
         CancellationToken cancellationToken)
     {
@@ -58,27 +57,16 @@ public partial class CreatePost
         if (!validationResult.IsValid)
         {
             return Result.Failure<Response>(new Error(
-                "CreatePost.Validation",
+                "EditPost.Validation",
                 validationResult.ToString()));
         }
 
-        Blog blog = await dbContext.Blogs
-                                    .Include(x => x.Posts)
-                                    .Where(x => x.Id == request.BlogId)
-                                    .FirstAsync();
+        Post post = await dbContext.Posts
+                                    .Where(x => x.Id == request.Id)
+                                    .FirstAsync(cancellationToken: cancellationToken);
 
-        Post post = new()
-        {
-            Body = request.Post.Body,
-            Title = request.Post.Title,
-            Id = Guid.NewGuid(),
-            CreationDate = DateTime.UtcNow,
-            BlogId = blog.Id,
-        };
-
-        dbContext.Posts.Add(post);
-
-        blog.Posts.Add(post);
+        post.Body = request.Post.Body;
+        post.Title = request.Post.Title;
 
         await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
@@ -96,15 +84,17 @@ public partial class CreatePost
         {
             RuleLevelCascadeMode = CascadeMode.Stop;
 
-            RuleFor(x => x.BlogId)
+            RuleFor(x => x.Id)
                 .Must(x =>
                 {
-                    return dBContext.Blogs
-                                    .Where(x => x.Author == currentUser.Id)
-                                    .Where(y => y.Id == x)
-                                    .Any();
+                    return dBContext.Posts
+                                .Include(x => x.Blog)
+                                .Where(x => x.Blog!.Author == currentUser.Id)
+                                .Where(x => x.DeleteDate == null)
+                                .Where(y => y.Id == x)
+                                .Any();
                 })
-                .WithMessage("El Blog no existe");
+                .WithMessage("El Post no existe");
 
             RuleFor(x => x.Post.Title)
                 .NotNull()

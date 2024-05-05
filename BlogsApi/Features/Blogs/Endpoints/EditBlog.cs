@@ -7,6 +7,7 @@ using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlogsApi.Features.Endpoints.Blogs;
 
@@ -50,9 +51,9 @@ public partial class EditBlog
                 validationResult.ToString()));
         }
 
-        Blog? blog = dbContext.Blogs
+        Blog? blog = await dbContext.Blogs
                                 .Where(x => x.DeleteDate == null)
-                                .SingleOrDefault(x => x.Id == request.Id);
+                                .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
 
         if (blog is null)
         {
@@ -64,7 +65,7 @@ public partial class EditBlog
         blog.Title = request.Title;
         blog.Description = request.Description;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         return new Response()
         {

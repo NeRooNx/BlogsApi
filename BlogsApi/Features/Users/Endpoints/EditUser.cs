@@ -59,7 +59,7 @@ public partial class EditUser
 
         User? user = await dBContext.Users
                             .Where(x => x.DeleteDate == null)
-                            .SingleOrDefaultAsync(x => x.Id == currentUser.Id, cancellationToken: cancellationToken);
+                            .FirstOrDefaultAsync(x => x.Id == currentUser.Id, cancellationToken: cancellationToken);
 
         if (user is null)
         {
@@ -71,7 +71,7 @@ public partial class EditUser
         user.Email = request.Email;
         user.LastName = request.LastName;
 
-        await dBContext.SaveChangesAsync(cancellationToken);
+        await dBContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         return Result.Success<Response>(new() { Id = user.Id });
     }

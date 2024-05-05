@@ -7,11 +7,12 @@ using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlogsApi.Features.Endpoints.Blogs;
 
 [Handler]
-[MapDelete("api/v1/blogs/{id:guid}")]
+[MapPut("api/v1/blogs/{id:guid}")]
 [Authorize(Policy = PolicyConstants.USER)]
 public partial class ReactivateBlog
 {
@@ -47,9 +48,9 @@ public partial class ReactivateBlog
                 validationResult.ToString()));
         }
 
-        Blog? blog = dbContext.Blogs
+        Blog? blog = await dbContext.Blogs
                                 .Where(x => x.DeleteDate != null)
-                                .SingleOrDefault(x => x.Id == request.Id && x.Author == currentUser.Id);
+                                .FirstOrDefaultAsync(x => x.Id == request.Id && x.Author == currentUser.Id, cancellationToken: cancellationToken);
 
         if (blog is null)
         {
@@ -60,7 +61,7 @@ public partial class ReactivateBlog
 
         blog.DeleteDate = null;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         return Result.Success();
     }

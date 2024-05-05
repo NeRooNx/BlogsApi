@@ -33,16 +33,16 @@ public partial class DeleteUser
     private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, CancellationToken cancellationToken)
     {
         Type? x = MethodBase.GetCurrentMethod()?.DeclaringType;
-        User? user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
+        User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
 
         if (user is null)
         {
             return Result.Failure<Response>(new($"{nameof(DeleteUser)}.Handle", "El User no existe."));
         }
 
-        user.DeleteDate = DateTime.UtcNow;
+        user.DeleteDate = DateTime.Now;
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         return Result.Success(new Response());
     }

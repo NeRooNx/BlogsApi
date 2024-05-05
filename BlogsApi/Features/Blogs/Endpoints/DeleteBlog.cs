@@ -7,6 +7,7 @@ using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlogsApi.Features.Endpoints.Blogs;
 
@@ -47,9 +48,9 @@ public partial class DeleteBlog
                 validationResult.ToString()));
         }
 
-        Blog? blog = dbContext.Blogs
+        Blog? blog = await dbContext.Blogs
                                 .Where(x => x.DeleteDate == null)
-                                .SingleOrDefault(x => x.Id == request.Id && x.Author == currentUser.Id);
+                                .FirstOrDefaultAsync(x => x.Id == request.Id && x.Author == currentUser.Id, cancellationToken: cancellationToken);
 
         if (blog is null)
         {
@@ -58,9 +59,9 @@ public partial class DeleteBlog
                 "El Blog no existe"));
         }
 
-        blog.DeleteDate = DateTime.UtcNow;
+        blog.DeleteDate = DateTime.Now;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         return Result.Success();
     }

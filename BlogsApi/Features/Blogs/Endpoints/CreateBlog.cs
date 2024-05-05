@@ -60,9 +60,9 @@ public partial class CreateBlog
             Id = Guid.NewGuid()
         };
 
-        await dbContext.Blogs.AddAsync(blog);
+        await dbContext.Blogs.AddAsync(blog, cancellationToken: cancellationToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         return new Response()
         {

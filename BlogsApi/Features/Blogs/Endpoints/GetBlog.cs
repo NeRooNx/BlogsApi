@@ -50,7 +50,7 @@ public partial class GetBlog
             .Include(x => x.AuthorNavigation)
             .Include(x => x.Posts)
             .Where(x => x.DeleteDate == null)
-            .SingleOrDefaultAsync(x => x.Id == request.Id);
+            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
 
         if (blog is null)
         {

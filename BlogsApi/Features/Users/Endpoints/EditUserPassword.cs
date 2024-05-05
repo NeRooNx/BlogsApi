@@ -53,7 +53,7 @@ public partial class EditUserPassword
 
         User? user = await dBContext.Users
                                     .Where(x => x.DeleteDate == null)
-                                    .SingleOrDefaultAsync(x => x.Id == currentUser.Id, cancellationToken: cancellationToken);
+                                    .FirstOrDefaultAsync(x => x.Id == currentUser.Id, cancellationToken: cancellationToken);
 
         if (user is null)
         {
@@ -62,7 +62,7 @@ public partial class EditUserPassword
 
         user.Password = BCryptHelper.EncryptPassword(request.Password!);
 
-        await dBContext.SaveChangesAsync(cancellationToken);
+        await dBContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         return new Response();
     }

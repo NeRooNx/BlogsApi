@@ -79,9 +79,9 @@ public partial class CreateUser
             RegisterDate = DateTime.Now
         };
 
-        dbContext.Users.Add(user);
+        await dbContext.Users.AddAsync(user, cancellationToken: cancellationToken);
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
         Response response = new()
         {

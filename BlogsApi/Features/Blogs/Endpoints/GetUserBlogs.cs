@@ -51,7 +51,7 @@ public partial class GetUserBlogs
         BlogsDBContext dbContext,
         CancellationToken cancellationToken)
     {
-        User? user = await dbContext.GetUserWithBlogsAndPosts(request.Id, cancellationToken);
+        User? user = await dbContext.GetUserWithBlogsAndPostsAsync(request.Id, cancellationToken);
 
         if (user is null)
         {

@@ -63,9 +63,9 @@ public partial class DeletePost
 
         Post post = await dbContext.Posts
                                     .Where(x => x.Id == request.Id)
-                                    .FirstAsync();
+                                    .FirstAsync(cancellationToken: cancellationToken);
 
-        post.DeleteDate = DateTime.UtcNow;
+        post.DeleteDate = DateTime.Now;
 
         await dbContext.SaveChangesAsync(cancellationToken: cancellationToken);
 
