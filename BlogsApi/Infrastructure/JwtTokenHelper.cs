@@ -6,10 +6,10 @@ using System.Security.Claims;
 using System.Text;
 namespace BlogsApi.Infrastructure;
 
-public class JwtTokenHelper(IConfiguration configuration)
+public class JwtTokenHelper(IConfiguration configuration, BlogsDBContext dBContext)
 {
 
-    public string GenerateToken(User user)
+    public (string token, DateTime expirationDate) GenerateToken(User user)
     {
         string secretKey = configuration.GetValue<string>("Token:JWT_SECRET_KEY") ?? throw new MissingFieldException("Token:JWT_SECRET_KEY");
         string audienceToken = configuration.GetValue<string>("Token:JWT_AUDIENCE_TOKEN") ?? throw new MissingFieldException("Token:JWT_AUDIENCE_TOKEN");
@@ -27,16 +27,18 @@ public class JwtTokenHelper(IConfiguration configuration)
 
         JwtSecurityTokenHandler tokenHandler = new();
 
+        var expirationDate = DateTime.Now.AddMinutes(expireTime);
+
         JwtSecurityToken jwtSecurityToken = tokenHandler.CreateJwtSecurityToken(
             audience: audienceToken,
             issuer: issuerToken,
             subject: claimsIdentity,
-            notBefore: DateTime.UtcNow,
-            expires: DateTime.UtcNow.AddMinutes(expireTime),
+            notBefore: DateTime.Now,
+            expires: expirationDate,
             signingCredentials: signingCredentials);
 
         string jwtTokenString = tokenHandler.WriteToken(jwtSecurityToken);
 
-        return jwtTokenString;
+        return (jwtTokenString, expirationDate);
     }
 }

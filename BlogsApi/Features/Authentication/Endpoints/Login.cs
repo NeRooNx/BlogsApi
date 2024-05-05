@@ -30,6 +30,9 @@ public partial class Login
     public record Response
     {
         public required string Token { get; set; }
+        public required string RefreshToken { get; set; }
+        public required DateTime Expiration { get; set; }
+
         //devolver roles para comodidad del recurso que consuma la api
     }
 
@@ -66,7 +69,7 @@ public partial class Login
 
         User? user = dbContext.Users
                             .Where(x => x.DeleteDate == null)
-                            .SingleOrDefault(x => x.Email == request.User || x.Nickname == request.User);
+                            .FirstOrDefault(x => x.Email == request.User || x.Nickname == request.User);
 
         if (user == null)
         {
@@ -78,11 +81,15 @@ public partial class Login
             return Result.Failure<Response>(new("Login.Handle", "El User o la contraseña no coinciden."));
         }
 
-        string token = jwtTokenHelper.GenerateToken(user);
+        (string token, DateTime expirationDate) = jwtTokenHelper.GenerateToken(user);
+
+        UserSession session = await dbContext.CreateUserSessionAsync(expirationDate, token, user.Id, Guid.NewGuid().ToString().Replace("-", ""), cancellationToken);
 
         Response response = new()
         {
-            Token = token
+            Token = session.Token!,
+            Expiration = session.ExpirationDate!.Value,
+            RefreshToken = session.RefreshToken!
         };
 
         return Result.Success(response);

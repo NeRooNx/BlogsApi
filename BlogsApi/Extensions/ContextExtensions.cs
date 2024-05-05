@@ -27,4 +27,23 @@ public static class ContextExtensions
 
         return user;
     }
+
+    public static async Task<UserSession> CreateUserSessionAsync(this BlogsDBContext dbContext, DateTime expirationDate, string token, Guid userId, string refreshToken, CancellationToken cancellationToken)
+    {
+        UserSession newSession = new()
+        {
+            Id = Guid.NewGuid(),
+            ExpirationDate = expirationDate,
+            Token = token,
+            UserId = userId,
+            RefreshToken = refreshToken,
+            CreationDate = DateTime.Now,
+        };
+
+        dbContext.UserSessions.Add(newSession);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return newSession;
+    }
 }
