@@ -1,4 +1,5 @@
-﻿using BlogsApi.Features.Authentication.Service;
+﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Shared;
 using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
@@ -17,11 +18,9 @@ namespace BlogsApi.Features.Endpoints.Users;
 public partial class EditUser
 {
 
-    internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
+      return result.TransformResult("EditUser");
     }
 
     public record Request
@@ -52,9 +51,7 @@ public partial class EditUser
 
         if (!validationResult.IsValid)
         {
-            return Result.Failure<Response>(new Error(
-                "EditUser.Validation",
-                validationResult.ToString()));
+            return Result.ValidationFailure<Response>(validationResult);
         }
 
         User? user = await dBContext.Users
@@ -79,9 +76,23 @@ public partial class EditUser
     public class Validator : AbstractValidator<Request>
     {
         public const string ClassName = nameof(EditUser);
-        public Validator()
+        public Validator(BlogsDBContext dbContext, CurrentUser currentUser)
         {
+            RuleLevelCascadeMode = CascadeMode.Stop;
 
+            RuleFor(x => x.Email)
+                .NotNull()
+                .NotEmpty()
+                .Must(x => !dbContext.Users.Where(y => y.Id != currentUser.Id && y.Email == x).Any())
+                    .WithMessage("Este email ya está registrado")
+                    .WithName("Email");
+
+            RuleFor(x => x.Nickname)
+                .NotNull()
+                .NotEmpty()
+                .Must(x => !dbContext.Users.Where(y => y.Id != currentUser.Id && y.Nickname == x).Any())
+                    .WithMessage("Este nickname ya está registrado")
+                    .WithName("Nickname");
         }
     }
 }

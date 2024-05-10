@@ -1,4 +1,5 @@
-﻿using BlogsApi.Features.Authentication.Service;
+﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Shared;
 using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
@@ -16,11 +17,9 @@ namespace BlogsApi.Features.Endpoints.Users;
 [Authorize(Policy = PolicyConstants.USER)]
 public partial class GetUsers
 {
-    internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
+        return result.TransformResult("GetUsers");
     }
 
     public record Request
@@ -47,18 +46,15 @@ public partial class GetUsers
         Request request, 
         BlogsDBContext dbContext, 
         IValidator<Request> validator, 
-        CurrentUser current,
+        CurrentUser currentUser,
         CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request);
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
         {
-            return Result.Failure<Response>(new Error(
-                "CreateUser.Validation",
-                validationResult.ToString()));
+            return Result.ValidationFailure<Response>(validationResult);
         }
-
 
         List<User> user = await dbContext.Users
                                 .Include(x => x.Blogs)

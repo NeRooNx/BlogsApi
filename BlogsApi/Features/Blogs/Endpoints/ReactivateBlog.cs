@@ -1,4 +1,5 @@
-﻿using BlogsApi.Features.Authentication.Service;
+﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Shared;
 using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
@@ -16,11 +17,9 @@ namespace BlogsApi.Features.Endpoints.Blogs;
 [Authorize(Policy = PolicyConstants.USER)]
 public partial class ReactivateBlog
 {
-    internal static Results<Ok, BadRequest<Error>> TransformResult(Result result)
+    internal static Results<Ok, BadRequest<Error>, ValidationProblem> TransformResult(Result result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok();
+        return result.TransformResult("ReactivateBlog");
     }
 
     public record Request
@@ -34,18 +33,16 @@ public partial class ReactivateBlog
 
     private static async ValueTask<Result> Handle(
         Request request, 
-        BlogsDBContext dbContext, 
+        BlogsDBContext dbContext,
+        IValidator<Request> validator,
         CurrentUser currentUser,
-        IValidator<Request> validator, 
         CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request);
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
         {
-            return Result.Failure(new Error(
-                "ReactivateBlog.Validation",
-                validationResult.ToString()));
+            return Result.ValidationFailure(validationResult);
         }
 
         Blog? blog = await dbContext.Blogs

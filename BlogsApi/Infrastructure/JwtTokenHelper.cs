@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Text;
 namespace BlogsApi.Infrastructure;
 
-public class JwtTokenHelper(IConfiguration configuration, BlogsDBContext dBContext)
+public class JwtTokenHelper(IConfiguration configuration)
 {
 
     public (string token, DateTime expirationDate) GenerateToken(User user)

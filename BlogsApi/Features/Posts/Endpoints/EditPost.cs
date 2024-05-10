@@ -1,4 +1,5 @@
-﻿using BlogsApi.Features.Authentication.Service;
+﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Shared;
 using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
@@ -17,11 +18,9 @@ namespace BlogsApi.Features;
 [Authorize(Policy = PolicyConstants.USER)]
 public partial class EditPost
 {
-    internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
+        return result.TransformResult("EditPost");
     }
 
     [EndpointRegistrationOverride(EndpointRegistration.AsParameters)]
@@ -50,15 +49,14 @@ public partial class EditPost
         Request request,
         BlogsDBContext dbContext,
         IValidator<Request> validator,
+        CurrentUser currentUser,
         CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request);
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
         {
-            return Result.Failure<Response>(new Error(
-                "EditPost.Validation",
-                validationResult.ToString()));
+            return Result.ValidationFailure<Response>(validationResult);
         }
 
         Post post = await dbContext.Posts

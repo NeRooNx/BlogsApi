@@ -1,6 +1,8 @@
 ﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Shared;
 using BlogsModel.Models;
+using FluentValidation;
 using Immediate.Apis.Shared;
 using Immediate.Handlers.Shared;
 using Microsoft.AspNetCore.Authorization;
@@ -14,11 +16,9 @@ namespace BlogsApi.Features.Endpoints.Users;
 [Authorize]
 public partial class GetUser
 {
-    internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
+        return result.TransformResult("GetUser");
     }
 
     public record Request
@@ -48,8 +48,20 @@ public partial class GetUser
         public required DateTime CreationDate { get; set; }
     }
 
-    private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, CancellationToken cancellationToken)
+    private static async ValueTask<Result<Response>> Handle(
+        Request request,
+        BlogsDBContext dbContext,
+        IValidator<Request> validator,
+        CurrentUser currentUser,
+        CancellationToken cancellationToken)
     {
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
+
+        if (!validationResult.IsValid)
+        {
+            return Result.ValidationFailure<Response>(validationResult);
+        }
+
         User? user = await dbContext.GetUserWithBlogsAsync(request.Id, cancellationToken);
 
         if (user is null)

@@ -1,4 +1,5 @@
 ﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Infrastructure;
 using BlogsApi.Shared;
 using BlogsModel.Models;
@@ -14,14 +15,9 @@ namespace BlogsApi.Features.Authentication.Endpoints;
 [MapPost("api/v1/refresh")]
 public partial class RefreshToken
 {
-    internal static Results<Ok<Response>, BadRequest<Error>, NotFound<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? result.Error == Error.SessionExpired 
-                ? TypedResults.NotFound(result.Error) 
-                : TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
-
+        return result.TransformResult("RefreshToken");
     }
 
     public record Request
@@ -50,9 +46,18 @@ public partial class RefreshToken
         Request request,
         BlogsDBContext dbContext,
         IValidator<Request> validator,
+        CurrentUser currentUser,
         JwtTokenHelper jwtTokenHelper,
         CancellationToken cancellationToken)
     {
+
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
+
+        if (!validationResult.IsValid)
+        {
+            return Result.ValidationFailure<Response>(validationResult);
+        }
+
         UserSession? session = dbContext.UserSessions
                             .Include(x => x.User)
                             .Where(x => x.RefreshToken == request.RefreshToken)

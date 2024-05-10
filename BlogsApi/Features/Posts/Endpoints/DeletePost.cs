@@ -1,4 +1,5 @@
-﻿using BlogsApi.Features.Authentication.Service;
+﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Shared;
 using BlogsApi.Shared.Constants;
 using BlogsModel.Models;
@@ -17,11 +18,9 @@ namespace BlogsApi.Features;
 [Authorize(Policy = PolicyConstants.USER)]
 public partial class DeletePost
 {
-    internal static Results<Ok, BadRequest<Error>> TransformResult(Result result)
+    internal static Results<Ok, BadRequest<Error>, ValidationProblem> TransformResult(Result result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok();
+        return result.TransformResult("DeletePost");
     }
 
     [EndpointRegistrationOverride(EndpointRegistration.AsParameters)]
@@ -50,15 +49,14 @@ public partial class DeletePost
         Request request,
         BlogsDBContext dbContext,
         IValidator<Request> validator,
+        CurrentUser currentUser,
         CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request);
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
         {
-            return Result.Failure(new Error(
-                "DeletePost.Validation",
-                validationResult.ToString()));
+            return Result.ValidationFailure(validationResult);
         }
 
         Post post = await dbContext.Posts

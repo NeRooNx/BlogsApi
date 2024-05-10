@@ -1,11 +1,14 @@
-﻿namespace BlogsApi.Shared;
+﻿
+using FluentValidation.Results;
+
+namespace BlogsApi.Shared;
 
 public class Result<TValue> : Result
 {
     private readonly TValue? _value;
 
-    protected internal Result(TValue? value, bool isSuccess, Error error)
-        : base(isSuccess, error) =>
+    protected internal Result(TValue? value, bool isSuccess, Error? error = null, ValidationResult? validationResult = null)
+        : base(isSuccess, error, validationResult) =>
         _value = value;
 
     public TValue Value => IsSuccess

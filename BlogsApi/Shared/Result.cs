@@ -1,8 +1,10 @@
-﻿namespace BlogsApi.Shared;
+﻿using FluentValidation.Results;
+
+namespace BlogsApi.Shared;
 
 public class Result
 {
-    protected internal Result(bool isSuccess, Error error)
+    protected internal Result(bool isSuccess, Error? error = null, ValidationResult? validationResult = null)
     {
         if (isSuccess && error != Error.None)
             throw new InvalidOperationException();
@@ -12,13 +14,15 @@ public class Result
 
         IsSuccess = isSuccess;
         Error = error;
+        ValidationError = validationResult;
     }
 
     public bool IsSuccess { get; }
 
     public bool IsFailure => !IsSuccess;
 
-    public Error Error { get; }
+    public Error? Error { get; }
+    public ValidationResult? ValidationError { get; }
 
     public static Result Success() => new(true, Error.None);
 
@@ -27,6 +31,9 @@ public class Result
     public static Result Failure(Error error) => new(false, error);
 
     public static Result<TValue> Failure<TValue>(Error error) => new(default, false, error);
+    public static Result ValidationFailure(ValidationResult validationResult) => new(false, validationResult: validationResult);
+
+    public static Result<TValue> ValidationFailure<TValue>(ValidationResult validationResult) => new(default, false, validationResult: validationResult);
 
     public static Result Create(bool condition) => condition ? Success() : Failure(Error.ConditionNotMet);
 

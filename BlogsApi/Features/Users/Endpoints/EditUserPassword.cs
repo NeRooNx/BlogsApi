@@ -18,11 +18,9 @@ namespace BlogsApi.Features.Endpoints.Users;
 public partial class EditUserPassword
 {
 
-    internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
+        return result.TransformResult("EditUserPassword");
     }
 
     public record Request
@@ -42,13 +40,11 @@ public partial class EditUserPassword
         IValidator<Request> validator, 
         CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request);
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
         {
-            return Result.Failure<Response>(new Error(
-                "EditUserPassword.Validation",
-                validationResult.ToString()));
+            return Result.ValidationFailure<Response>(validationResult);
         }
 
         User? user = await dBContext.Users

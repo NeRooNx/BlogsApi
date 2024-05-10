@@ -1,4 +1,5 @@
 ﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Infrastructure;
 using BlogsApi.Shared;
 using BlogsModel.Models;
@@ -14,11 +15,9 @@ namespace BlogsApi.Features.Endpoints.Users;
 [MapPost("api/v1/users")]
 public partial class CreateUser
 {
-    internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
+        return result.TransformResult("CreateUser");
     }
 
     public record Request
@@ -58,15 +57,18 @@ public partial class CreateUser
         }
     }
 
-    private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, IValidator<Request> validator, CancellationToken cancellationToken)
+    private static async ValueTask<Result<Response>> Handle(
+        Request request,
+        BlogsDBContext dbContext,
+        IValidator<Request> validator,
+        CurrentUser currentUser,
+        CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request);
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
         {
-            return Result.Failure<Response>(new Error(
-                "CreateUser.Validation",
-                validationResult.ToString()));
+            return Result.ValidationFailure<Response>(validationResult);
         }
 
         var user = new User()

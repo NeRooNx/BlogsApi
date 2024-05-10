@@ -1,4 +1,6 @@
-﻿using BlogsApi.Shared;
+﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
+using BlogsApi.Shared;
 using BlogsModel.Models;
 using FluentValidation;
 using Immediate.Apis.Shared;
@@ -14,11 +16,9 @@ namespace BlogsApi.Features.Endpoints.Blogs;
 [Authorize]
 public partial class GetBlog
 {
-    internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
+        return result.TransformResult("GetBlog");
     }
 
     public record Request
@@ -43,8 +43,20 @@ public partial class GetBlog
         public string? Nickname { get; set; }
     }
 
-    private static async ValueTask<Result<Response>> Handle(Request request, BlogsDBContext dbContext, CancellationToken cancellationToken)
+    private static async ValueTask<Result<Response>> Handle(
+        Request request, 
+        BlogsDBContext dbContext,
+        IValidator<Request> validator,
+        CurrentUser currentUser,
+        CancellationToken cancellationToken)
     {
+
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
+
+        if (!validationResult.IsValid)
+        {
+            return Result.ValidationFailure<Response>(validationResult);
+        }
 
         Blog? blog = await dbContext.Blogs
             .Include(x => x.AuthorNavigation)

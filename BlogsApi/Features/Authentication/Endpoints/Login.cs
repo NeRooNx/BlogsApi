@@ -1,4 +1,5 @@
 ﻿using BlogsApi.Extensions;
+using BlogsApi.Features.Authentication.Service;
 using BlogsApi.Infrastructure;
 using BlogsApi.Shared;
 using BlogsModel.Models;
@@ -14,11 +15,9 @@ namespace BlogsApi.Features.Authentication.Endpoints;
 [MapPost("api/v1/login")]
 public partial class Login
 {
-    internal static Results<Ok<Response>, BadRequest<Error>> TransformResult(Result<Response> result)
+    internal static Results<Ok<Response>, BadRequest<Error>, ValidationProblem> TransformResult(Result<Response> result)
     {
-        return result.IsFailure
-            ? TypedResults.BadRequest(result.Error)
-            : TypedResults.Ok(result.Value);
+        return result.TransformResult("Login");
     }
 
     public record Request
@@ -57,14 +56,16 @@ public partial class Login
         Request request,
         BlogsDBContext dbContext,
         IValidator<Request> validator,
+        CurrentUser currentUser,
         JwtTokenHelper jwtTokenHelper,
         CancellationToken cancellationToken)
     {
-        ValidationResult validationResult = validator.Validate(request);
+
+        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
 
         if (!validationResult.IsValid)
         {
-            return Result.Failure<Response>(new Error("Login.Validation", validationResult.ToString()));
+            return Result.ValidationFailure<Response>(validationResult);
         }
 
         User? user = dbContext.Users
