@@ -86,4 +86,12 @@ public partial class GetBlog
 
         return Result.Success<Response>(response);
     }
+
+    public class Validator : AbstractValidator<Request>
+    {
+        public Validator()
+        {
+            RuleLevelCascadeMode = CascadeMode.Stop;
+        }
+    }
 }

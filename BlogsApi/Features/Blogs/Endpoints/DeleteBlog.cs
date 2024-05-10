@@ -68,6 +68,7 @@ public partial class DeleteBlog
     {
         public Validator()
         {
+            RuleLevelCascadeMode = CascadeMode.Stop;
         }
     }
 }

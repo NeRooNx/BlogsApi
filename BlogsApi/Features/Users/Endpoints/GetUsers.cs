@@ -45,17 +45,9 @@ public partial class GetUsers
     private static async ValueTask<Result<Response>> Handle(
         Request request, 
         BlogsDBContext dbContext, 
-        IValidator<Request> validator, 
         CurrentUser currentUser,
         CancellationToken cancellationToken)
     {
-        FluentValidation.Results.ValidationResult validationResult = validator.Validate(request);
-
-        if (!validationResult.IsValid)
-        {
-            return Result.ValidationFailure<Response>(validationResult);
-        }
-
         List<User> user = await dbContext.Users
                                 .Include(x => x.Blogs)
                                 .Where(x => x.DeleteDate == null)
@@ -86,10 +78,4 @@ public partial class GetUsers
         return Result.Success(response);
     }
 
-    public class Validator : AbstractValidator<Request>
-    {
-        public Validator()
-        {
-        }
-    }
 }

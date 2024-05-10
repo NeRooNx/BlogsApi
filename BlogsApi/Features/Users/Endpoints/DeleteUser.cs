@@ -59,4 +59,12 @@ public partial class DeleteUser
 
         return Result.Success(new Response());
     }
+
+    public class Validator : AbstractValidator<Request>
+    {
+        public Validator()
+        {
+            RuleLevelCascadeMode = CascadeMode.Stop;
+        }
+    }
 }

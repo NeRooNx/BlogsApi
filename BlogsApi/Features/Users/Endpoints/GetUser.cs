@@ -83,4 +83,12 @@ public partial class GetUser
 
         return Result.Success(response);
     }
+
+    public class Validator : AbstractValidator<Request>
+    {
+        public Validator()
+        {
+            RuleLevelCascadeMode = CascadeMode.Stop;
+        }
+    }
 }
